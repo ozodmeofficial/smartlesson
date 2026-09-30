@@ -1,0 +1,43 @@
+name: python_sarguzashti
+description: "Python Sarguzashti — o'zgaruvchilar, ma'lumot turlari va stringlar bo'yicha interaktiv darslik-o'yin."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.0
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Nunito-Black.ttf
+          weight: 900
+    - family: NotoEmoji
+      fonts:
+        - asset: assets/fonts/Emoji.ttf
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700

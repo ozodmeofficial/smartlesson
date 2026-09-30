@@ -1,0 +1,79 @@
+name: Windows .exe build
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Analyze & test
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Bundle Visual C++ runtime
+        shell: pwsh
+        run: |
+          # Toza Windows'da ham ishga tushishi uchun VC++ DLL'larini exe yoniga qo'yamiz
+          $dest = "build\windows\x64\runner\Release"
+          foreach ($dll in "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll") {
+            Copy-Item "C:\Windows\System32\$dll" $dest -ErrorAction SilentlyContinue
+          }
+          Get-ChildItem $dest
+
+      - name: Portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath dist\PythonSarguzashti-Portable.zip
+
+      - name: Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          & $iscc "/DMyAppVersion=1.0.${{ github.run_number }}" installer\setup.iss
+          Get-ChildItem dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PythonSarguzashti-Windows
+          path: dist/*
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Python Sarguzashti v1.0.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ github.ref_name != github.event.repository.default_branch }}
+          body: |
+            🐍 **Python Sarguzashti** — o'zgaruvchilar, ma'lumot turlari va stringlar bo'yicha interaktiv darslik-o'yin.
+
+            **Yuklab olish:**
+            - `PythonSarguzashti-Setup.exe` — o'rnatuvchi (administrator huquqi shart emas)
+            - `PythonSarguzashti-Portable.zip` — o'rnatmasdan: arxivni oching va `python_sarguzashti.exe` ni ishga tushiring
+
+            Kodni ishga tushirish va amaliy vazifalarni tekshirish uchun internet kerak (Judge0 serveri).
+          files: dist/*
